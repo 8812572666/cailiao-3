@@ -1,0 +1,595 @@
+/* 材料数据管理系统样式文件 - GitHub风格设计 */
+
+/* 全局样式 */
+:root {
+    --github-bg-primary: #ffffff;
+    --github-bg-secondary: #f6f8fa;
+    --github-bg-tertiary: #f1f3f4;
+    --github-border-primary: #d0d7de;
+    --github-border-secondary: #e1e4e8;
+    --github-text-primary: #24292f;
+    --github-text-secondary: #656d76;
+    --github-text-muted: #8b949e;
+    --github-accent-primary: #0969da;
+    --github-accent-secondary: #0550ae;
+    --github-success: #1a7f37;
+    --github-danger: #cf222e;
+    --github-warning: #bf8700;
+    --github-shadow-small: 0 1px 3px rgba(16, 22, 26, 0.1);
+    --github-shadow-medium: 0 3px 6px rgba(16, 22, 26, 0.15);
+    --github-shadow-large: 0 8px 24px rgba(16, 22, 26, 0.15);
+}
+
+body {
+    background-color: var(--github-bg-secondary);
+    color: var(--github-text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+.container, .container-fluid {
+    max-width: 1400px;
+}
+
+/* 导航栏样式 */
+.navbar {
+    background-color: var(--github-bg-primary) !important;
+    border-bottom: 1px solid var(--github-border-primary);
+    box-shadow: var(--github-shadow-small);
+    padding: 0.75rem 0;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--github-text-primary) !important;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--github-text-primary) !important;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.nav-link:hover {
+    background-color: var(--github-bg-secondary);
+    color: var(--github-accent-primary) !important;
+}
+
+/* 卡片样式 */
+.card {
+    background-color: var(--github-bg-primary);
+    border: 1px solid var(--github-border-primary);
+    border-radius: 6px;
+    box-shadow: var(--github-shadow-small);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--github-shadow-medium);
+    transform: translateY(-1px);
+}
+
+.card-header {
+    background-color: var(--github-bg-secondary);
+    border-bottom: 1px solid var(--github-border-primary);
+    border-radius: 6px 6px 0 0 !important;
+    font-weight: 600;
+    color: var(--github-text-primary);
+    padding: 1rem 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    color: var(--github-text-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* 数据库卡片特殊样式 */
+.database-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid var(--github-border-primary);
+}
+
+.database-card:hover {
+    border-color: var(--github-accent-primary);
+    box-shadow: var(--github-shadow-medium);
+    transform: translateY(-2px);
+}
+
+.database-card .card-body {
+    padding: 2rem;
+}
+
+/* 统计卡片样式 */
+.stat-card {
+    padding: 1.5rem;
+    border-radius: 6px;
+    background-color: var(--github-bg-primary);
+    border: 1px solid var(--github-border-primary);
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.stat-card h3, .stat-card h4 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--github-text-primary);
+}
+
+.stat-card .text-muted {
+    color: var(--github-text-secondary) !important;
+    font-size: 0.875rem;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+    border-width: 1px;
+    line-height: 1.5;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background-color: var(--github-accent-primary);
+    border-color: var(--github-accent-primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--github-accent-secondary);
+    border-color: var(--github-accent-secondary);
+}
+
+.btn-outline-primary {
+    border-color: var(--github-accent-primary);
+    color: var(--github-accent-primary);
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--github-accent-primary);
+    border-color: var(--github-accent-primary);
+    color: #ffffff;
+}
+
+.btn-success {
+    background-color: var(--github-success);
+    border-color: var(--github-success);
+    color: #ffffff;
+}
+
+.btn-outline-success {
+    border-color: var(--github-success);
+    color: var(--github-success);
+}
+
+.btn-outline-success:hover {
+    background-color: var(--github-success);
+    border-color: var(--github-success);
+    color: #ffffff;
+}
+
+/* 表格样式 */
+.table {
+    background-color: var(--github-bg-primary);
+    border: 1px solid var(--github-border-primary);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: var(--github-bg-secondary);
+    border-bottom: 1px solid var(--github-border-primary);
+    color: var(--github-text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.table tbody td {
+    border-top: 1px solid var(--github-border-secondary);
+    color: var(--github-text-primary);
+    font-size: 0.875rem;
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: var(--github-bg-secondary);
+    transition: background-color 0.15s ease;
+}
+
+.table-responsive {
+    border-radius: 6px;
+    border: 1px solid var(--github-border-primary);
+}
+
+/* 粘性表头 */
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* 表格行样式 */
+.table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover td {
+    background-color: var(--github-bg-secondary) !important;
+}
+
+/* 表格单元格样式 */
+.table td {
+    vertical-align: middle;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table td.text-muted {
+    font-style: italic;
+    color: var(--github-text-muted) !important;
+}
+
+/* 表单控件样式 */
+.form-select, .form-control {
+    border-radius: 6px;
+    border: 1px solid var(--github-border-primary);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background-color: var(--github-bg-primary);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--github-text-primary);
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--github-accent-primary);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.2);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--github-text-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* 警告框样式 */
+.alert {
+    border-radius: 6px;
+    border: 1px solid transparent;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.alert-info {
+    background-color: #ddf4ff;
+    border-color: #a5d6ff;
+    color: #0969da;
+}
+
+.alert-success {
+    background-color: #dafbe1;
+    border-color: #a6e3a1;
+    color: #1a7f37;
+}
+
+.alert-danger {
+    background-color: #ffebe9;
+    border-color: #ffaba8;
+    color: #cf222e;
+}
+
+.alert-warning {
+    background-color: #fff8c5;
+    border-color: #f9e68c;
+    color: #9a6700;
+}
+
+/* 面包屑导航样式 */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item a {
+    color: var(--github-accent-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--github-text-secondary);
+    font-weight: 500;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--github-text-muted);
+    content: "/";
+}
+
+/* 徽章样式 */
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.badge.bg-primary {
+    background-color: var(--github-accent-primary) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--github-success) !important;
+}
+
+/* 模态框样式 */
+.modal-content {
+    border-radius: 6px;
+    border: 1px solid var(--github-border-primary);
+    box-shadow: var(--github-shadow-large);
+    background-color: var(--github-bg-primary);
+}
+
+.modal-header {
+    border-radius: 6px 6px 0 0;
+    background-color: var(--github-bg-secondary);
+    border-bottom: 1px solid var(--github-border-primary);
+    padding: 1rem 1.5rem;
+}
+
+.modal-title {
+    color: var(--github-text-primary);
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    background-color: var(--github-bg-secondary);
+    border-top: 1px solid var(--github-border-primary);
+    padding: 1rem 1.5rem;
+}
+
+/* 页脚样式 */
+footer {
+    background-color: var(--github-bg-primary) !important;
+    border-top: 1px solid var(--github-border-primary);
+    color: var(--github-text-secondary);
+}
+
+/* 下拉菜单样式 */
+.dropdown-menu {
+    background-color: var(--github-bg-primary);
+    border: 1px solid var(--github-border-primary);
+    border-radius: 6px;
+    box-shadow: var(--github-shadow-medium);
+    padding: 0.5rem 0;
+    font-size: 0.875rem;
+}
+
+.dropdown-item {
+    color: var(--github-text-primary);
+    padding: 0.5rem 1rem;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--github-bg-secondary);
+    color: var(--github-text-primary);
+}
+
+.dropdown-divider {
+    border-color: var(--github-border-primary);
+    margin: 0.5rem 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container, .container-fluid {
+        padding: 0 1rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .stat-card h3, .stat-card h4 {
+        font-size: 1.25rem;
+    }
+
+    .database-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+/* 图标样式 */
+.bi {
+    font-size: 1em;
+    vertical-align: -0.125em;
+}
+
+.display-1 .bi, .display-4 .bi {
+    font-size: inherit;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--github-bg-secondary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--github-border-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--github-text-muted);
+}
+
+/* 加载动画 */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    color: var(--github-accent-primary);
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* 工具提示样式 */
+.tooltip {
+    font-size: 0.75rem;
+}
+
+/* 代码样式 */
+code {
+    background-color: rgba(175, 184, 193, 0.2);
+    color: var(--github-text-primary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.875em;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* 特殊状态样式 */
+.connection-success {
+    background-color: #dafbe1;
+    border-left: 4px solid var(--github-success);
+    color: var(--github-success);
+}
+
+.connection-error {
+    background-color: #ffebe9;
+    border-left: 4px solid var(--github-danger);
+    color: var(--github-danger);
+}
+
+/* 文本颜色工具类 */
+.text-github-primary {
+    color: var(--github-text-primary) !important;
+}
+
+.text-github-secondary {
+    color: var(--github-text-secondary) !important;
+}
+
+.text-github-muted {
+    color: var(--github-text-muted) !important;
+}
+
+.text-github-accent {
+    color: var(--github-accent-primary) !important;
+}
+
+/* 背景颜色工具类 */
+.bg-github-primary {
+    background-color: var(--github-bg-primary) !important;
+}
+
+.bg-github-secondary {
+    background-color: var(--github-bg-secondary) !important;
+}
+
+/* 边框工具类 */
+.border-github {
+    border-color: var(--github-border-primary) !important;
+}
+
+/* 加载指示器样式 */
+#loadingIndicator {
+    display: flex;
+    align-items: center;
+    color: var(--github-text-secondary);
+}
+
+/* 图片预览样式 */
+.image-thumbnail {
+    border: 1px solid var(--github-border-primary);
+    border-radius: 6px;
+    transition: border-color 0.15s ease;
+}
+
+.image-thumbnail:hover {
+    border-color: var(--github-accent-primary);
+}
+
+/* 文本内容样式 */
+.text-content {
+    background-color: var(--github-bg-secondary);
+    border: 1px solid var(--github-border-primary);
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--github-text-primary);
+}

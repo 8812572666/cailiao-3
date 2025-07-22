@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'表数据 - ' + ${tableName} + ' - 材料数据管理系统'">表数据 - 材料数据管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .oss-image-thumbnail {
+            transition: transform 0.2s;
+        }
+
+        .oss-image-thumbnail:hover {
+            transform: scale(1.1);
+        }
+
+        .text-preview {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+
+        .text-preview:hover {
+            background-color: #e9ecef;
+        }
+
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .text-content {
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-database-gear me-2"></i>
+                材料数据管理系统
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-house"></i> 首页
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- 面包屑导航 -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item">
+                    <a th:href="@{/database/{name}(name=${databaseName})}" th:text="${databaseName}">数据库</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${tableName}">表</li>
+            </ol>
+        </nav>
+
+        <!-- 错误信息 -->
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}">错误信息</span>
+        </div>
+
+        <!-- 表信息 -->
+        <div th:if="${tableInfo}" class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-table me-2 text-success"></i>
+                            表: <span th:text="${tableName}">表名</span>
+                        </h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-light btn-sm" onclick="showTableColumns()">
+                                <i class="bi bi-list-columns me-1"></i>列信息
+                            </button>
+                            <button type="button" class="btn btn-light btn-sm" onclick="refreshData()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>刷新
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <h4 class="text-primary" th:text="${tableInfo.rowCount}">0</h4>
+                                    <p class="text-muted mb-0">总记录数</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <h4 class="text-info" th:text="${tableInfo.columnCount}">0</h4>
+                                    <p class="text-muted mb-0">列数</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <h4 class="text-success" th:text="${tableData.totalRows}">0</h4>
+                                    <p class="text-muted mb-0">显示记录</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <h4 class="text-warning" th:text="${limit}">100</h4>
+                                    <p class="text-muted mb-0">限制数量</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据控制 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form method="get" class="d-flex align-items-center">
+                    <label for="limitInput" class="form-label me-2 mb-0">显示记录数:</label>
+                    <input type="number" class="form-control me-2" id="limitInput" name="limit"
+                           th:value="${limit}" min="1" max="100000" style="width: 120px;">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-search me-1"></i>查询
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-success btn-sm dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-download me-1"></i>下载数据
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="downloadCurrentPage()">
+                                <i class="bi bi-file-earmark-text me-2"></i>当前页面数据 (CSV)
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="downloadFullTable()">
+                                <i class="bi bi-database me-2"></i>完整表数据 (CSV)
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="exportData()">
+                                <i class="bi bi-table me-2"></i>当前页面 (旧版本)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表数据 -->
+        <div th:if="${tableData}" class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-grid me-2"></i>
+                            数据内容
+                        </h6>
+                        <!-- 加载状态指示器 -->
+                        <div id="loadingIndicator" class="d-none">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <small class="text-muted">正在加载数据...</small>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div th:if="${#lists.size(tableData.data) > 0}">
+                            <div class="table-responsive" style="max-height: 600px;">
+                                <table class="table table-striped table-hover mb-0">
+                                    <thead class="table-dark sticky-top">
+                                        <tr>
+                                            <th th:each="column : ${tableData.columns}" th:text="${column}">列名</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="row : ${tableData.data}">
+                                            <td th:each="cell, cellStat : ${row}">
+                                                <!-- 检查是否是图片列 -->
+                                                <div th:if="${tableData.columns[cellStat.index] == '图片'}">
+                                                    <div th:if="${cell != null and cell.exists}">
+                                                        <div class="image-container" th:data-filename="${cell.fileName}">
+                                                            <div class="loading-placeholder" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border: 1px dashed #ddd; border-radius: 4px; background-color: #f8f9fa;">
+                                                                <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                                                                    <span class="visually-hidden">加载中...</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <br>
+                                                        <small class="text-muted" th:text="${cell.fileName}">文件名</small>
+                                                    </div>
+                                                    <!-- 没有图片时显示空白 -->
+                                                    <div th:if="${cell == null or !cell.exists}" style="height: 20px;">
+                                                        <!-- 空白区域 -->
+                                                    </div>
+                                                </div>
+
+                                                <!-- 检查是否是文本文件列 -->
+                                                <div th:if="${tableData.columns[cellStat.index] == '文本文件'}">
+                                                    <div th:if="${cell != null and cell.exists}">
+                                                        <div class="text-container" th:data-filename="${cell.fileName}">
+                                                            <div class="text-loading-placeholder border rounded p-2" style="max-height: 60px; overflow: hidden; font-size: 0.85em; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border-color: #ddd;">
+                                                                <div class="spinner-border spinner-border-sm me-2 text-secondary" role="status">
+                                                                    <span class="visually-hidden">加载中...</span>
+                                                                </div>
+                                                                <span class="text-secondary">加载中...</span>
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted" th:text="${cell.fileName}">文件名</small>
+                                                    </div>
+                                                    <!-- 没有文本文件时显示空白 -->
+                                                    <div th:if="${cell == null or !cell.exists}" style="height: 20px;">
+                                                        <!-- 空白区域 -->
+                                                    </div>
+                                                </div>
+
+                                                <!-- 普通数据列 -->
+                                                <span th:if="${tableData.columns[cellStat.index] != '图片' and tableData.columns[cellStat.index] != '文本文件'}"
+                                                      th:text="${cell != null ? cell : ''}"
+                                                      th:class="${cell == null ? 'text-muted' : ''}">数据</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.size(tableData.data) == 0}" class="text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h5 class="text-muted mt-3">该表没有数据</h5>
+                            <p class="text-muted">表为空或查询条件不匹配</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片预览模态框 -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-image me-2"></i>
+                        图片预览 - <span id="imageFileName">文件名</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="imageLoading" class="d-none">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载图片...</p>
+                    </div>
+                    <div id="imageContent">
+                        <img id="fullImage" src="" alt="图片" class="img-fluid">
+                    </div>
+                    <div id="imageError" class="d-none text-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>图片加载失败</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" id="downloadImageBtn" onclick="downloadImage()">
+                        <i class="bi bi-download me-1"></i>下载图片
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文本文件预览模态框 -->
+    <div class="modal fade" id="textModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-file-text me-2"></i>
+                        文本文件预览 - <span id="textFileName">文件名</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="textLoading" class="d-none text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载文本...</p>
+                    </div>
+                    <div id="textContent" class="text-content border rounded p-3" style="background-color: #f8f9fa;">
+                        <!-- 文本内容将在这里显示 -->
+                    </div>
+                    <div id="textError" class="d-none text-danger text-center">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>文本文件加载失败</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" id="downloadTextBtn" onclick="downloadText()">
+                        <i class="bi bi-download me-1"></i>下载文本
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 列信息模态框 -->
+    <div class="modal fade" id="columnsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-list-columns me-2"></i>
+                        列信息 - <span th:text="${tableName}">表名</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>列名</th>
+                                    <th>数据类型</th>
+                                    <th>允许NULL</th>
+                                    <th>键</th>
+                                    <th>默认值</th>
+                                    <th>额外信息</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="column : ${tableInfo.columns}">
+                                    <td><strong th:text="${column.name}">列名</strong></td>
+                                    <td><code th:text="${column.type}">类型</code></td>
+                                    <td>
+                                        <span th:class="${column.nullable ? 'badge bg-warning' : 'badge bg-success'}" 
+                                              th:text="${column.nullable ? 'YES' : 'NO'}">NO</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${column.key}" class="badge bg-primary" th:text="${column.key}">KEY</span>
+                                        <span th:unless="${column.key}">-</span>
+                                    </td>
+                                    <td th:text="${column.defaultValue ?: '-'}">默认值</td>
+                                    <td th:text="${column.extra ?: '-'}">额外信息</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+    
+    <script th:inline="javascript">
+        const tableData = /*[[${tableData}]]*/ {};
+        const tableName = /*[[${tableName}]]*/ '';
+        const databaseName = /*[[${databaseName}]]*/ '';
+
+        // 性能优化相关变量
+        let isLoading = false;
+        let currentPage = 1;
+        let pageSize = 50; // 减少每页显示数量以提高性能
+        let totalPages = 1;
+        
+        function showTableColumns() {
+            const modal = new bootstrap.Modal(document.getElementById('columnsModal'));
+            modal.show();
+        }
+
+        function refreshData() {
+            window.location.reload();
+        }
+
+        // 显示完整图片
+        function showFullImage(fileName) {
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            const imageFileName = document.getElementById('imageFileName');
+            const imageLoading = document.getElementById('imageLoading');
+            const imageContent = document.getElementById('imageContent');
+            const imageError = document.getElementById('imageError');
+            const fullImage = document.getElementById('fullImage');
+
+            // 设置文件名和全局变量
+            imageFileName.textContent = fileName;
+            currentImageFileName = fileName;
+
+            // 显示加载状态
+            imageLoading.classList.remove('d-none');
+            imageContent.classList.add('d-none');
+            imageError.classList.add('d-none');
+
+            // 显示模态框
+            modal.show();
+
+            // 获取完整图片
+            fetch(`/api/oss/image/${encodeURIComponent(fileName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    imageLoading.classList.add('d-none');
+                    if (data.success) {
+                        fullImage.src = data.data;
+                        imageContent.classList.remove('d-none');
+                    } else {
+                        imageError.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('获取图片失败:', error);
+                    imageLoading.classList.add('d-none');
+                    imageError.classList.remove('d-none');
+                });
+        }
+
+        // 显示完整文本
+        function showFullText(fileName) {
+            const modal = new bootstrap.Modal(document.getElementById('textModal'));
+            const textFileName = document.getElementById('textFileName');
+            const textLoading = document.getElementById('textLoading');
+            const textContent = document.getElementById('textContent');
+            const textError = document.getElementById('textError');
+
+            // 设置文件名和全局变量
+            textFileName.textContent = fileName;
+            currentTextFileName = fileName;
+
+            // 显示加载状态
+            textLoading.classList.remove('d-none');
+            textContent.classList.add('d-none');
+            textError.classList.add('d-none');
+
+            // 显示模态框
+            modal.show();
+
+            // 获取完整文本
+            fetch(`/api/oss/text/${encodeURIComponent(fileName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    textLoading.classList.add('d-none');
+                    if (data.success) {
+                        textContent.textContent = data.data;
+                        textContent.classList.remove('d-none');
+                    } else {
+                        textError.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('获取文本失败:', error);
+                    textLoading.classList.add('d-none');
+                    textError.classList.remove('d-none');
+                });
+        }
+
+        // 异步加载OSS文件 - 高性能优化版本
+        function loadOssFilesAsync() {
+            // 使用IntersectionObserver懒加载图片和文本
+            if ('IntersectionObserver' in window) {
+                // 创建图片观察器 - 优化配置
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    const visibleContainers = [];
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const container = entry.target;
+                            const fileName = container.dataset.filename;
+                            if (fileName) {
+                                visibleContainers.push({ container, fileName });
+                            }
+                            observer.unobserve(container); // 加载后停止观察
+                        }
+                    });
+
+                    // 批量加载可见的图片
+                    if (visibleContainers.length > 0) {
+                        batchLoadImages(visibleContainers);
+                    }
+                }, {
+                    rootMargin: '200px', // 提前200px开始加载
+                    threshold: 0.1 // 10%可见时开始加载
+                });
+
+                // 创建文本观察器
+                const textObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const container = entry.target;
+                            const fileName = container.dataset.filename;
+                            if (fileName) {
+                                loadTextPreview(container, fileName);
+                            }
+                            observer.unobserve(container); // 加载后停止观察
+                        }
+                    });
+                }, { rootMargin: '100px' }); // 提前100px开始加载
+
+                // 观察所有图片容器
+                document.querySelectorAll('.image-container').forEach(container => {
+                    imageObserver.observe(container);
+                });
+
+                // 观察所有文本容器
+                document.querySelectorAll('.text-container').forEach(container => {
+                    textObserver.observe(container);
+                });
+            } else {
+                // 回退到传统方式 - 对于不支持IntersectionObserver的浏览器
+                // 加载图片缩略图
+                document.querySelectorAll('.image-container').forEach(container => {
+                    const fileName = container.dataset.filename;
+                    if (fileName) {
+                        loadImageThumbnail(container, fileName);
+                    }
+                });
+
+                // 加载文本预览
+                document.querySelectorAll('.text-container').forEach(container => {
+                    const fileName = container.dataset.filename;
+                    if (fileName) {
+                        loadTextPreview(container, fileName);
+                    }
+                });
+            }
+        }
+
+        // 图片缓存
+        const imageCache = new Map();
+
+        // 批量加载图片 - 性能优化
+        function batchLoadImages(containers) {
+            // 限制并发数量
+            const maxConcurrent = 3;
+            let currentIndex = 0;
+
+            function loadNext() {
+                if (currentIndex >= containers.length) return;
+
+                const batch = containers.slice(currentIndex, currentIndex + maxConcurrent);
+                currentIndex += maxConcurrent;
+
+                const promises = batch.map(({ container, fileName }) => {
+                    return loadImageThumbnail(container, fileName)
+                        .catch(error => {
+                            console.warn(`图片加载失败: ${fileName}`, error);
+                            // 显示错误状态
+                            container.innerHTML = `
+                                <div class="error-placeholder" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border: 1px solid #dc3545; border-radius: 4px; background-color: #f8d7da; color: #721c24;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                            `;
+                        });
+                });
+
+                Promise.allSettled(promises).then(() => {
+                    // 继续加载下一批
+                    if (currentIndex < containers.length) {
+                        setTimeout(loadNext, 100); // 100ms延迟避免过载
+                    }
+                });
+            }
+
+            loadNext();
+        }
+
+        // 加载图片缩略图 - 高性能优化版本
+        function loadImageThumbnail(container, fileName) {
+            return new Promise((resolve, reject) => {
+                // 检查缓存
+                if (imageCache.has(fileName)) {
+                    const cachedData = imageCache.get(fileName);
+                    renderImageThumbnail(container, fileName, cachedData);
+                    resolve(cachedData);
+                    return;
+                }
+
+                // 设置超时
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 减少到3秒超时
+
+                fetch(`/api/oss/thumbnail/${encodeURIComponent(fileName)}`, {
+                    signal: controller.signal
+                })
+                    .then(response => {
+                        clearTimeout(timeoutId);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 缓存结果
+                        imageCache.set(fileName, data);
+                        renderImageThumbnail(container, fileName, data);
+                        resolve(data);
+                    })
+                    .catch(error => {
+                        clearTimeout(timeoutId);
+                        console.error('加载图片缩略图失败:', error);
+                        // 显示空白
+                        container.innerHTML = '';
+                        reject(error);
+                    });
+            });
+        }
+
+        // 渲染图片缩略图
+        function renderImageThumbnail(container, fileName, data) {
+            if (data.success) {
+                container.innerHTML = `
+                    <img src="${data.data}"
+                         alt="${fileName}"
+                         class="img-thumbnail cursor-pointer oss-image-thumbnail"
+                         data-filename="${fileName}"
+                         style="max-width: 80px; max-height: 80px;"
+                         onclick="showFullImage(this.dataset.filename)"
+                         title="双击查看完整图片">
+                `;
+            } else {
+                // 显示空白
+                container.innerHTML = '';
+            }
+        }
+
+        // 文本缓存
+        const textCache = new Map();
+
+        // 加载文本预览 - 优化版本
+        function loadTextPreview(container, fileName) {
+            // 检查缓存
+            if (textCache.has(fileName)) {
+                const cachedData = textCache.get(fileName);
+                renderTextPreview(container, fileName, cachedData);
+                return;
+            }
+
+            // 设置超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
+            fetch(`/api/oss/preview/${encodeURIComponent(fileName)}`, {
+                signal: controller.signal
+            })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 缓存结果
+                    textCache.set(fileName, data);
+                    renderTextPreview(container, fileName, data);
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.error('加载文本预览失败:', error);
+                    // 显示空白
+                    container.innerHTML = '';
+                });
+        }
+
+        // 渲染文本预览
+        function renderTextPreview(container, fileName, data) {
+            if (data.success) {
+                container.innerHTML = `
+                    <div class="text-preview cursor-pointer border rounded p-2"
+                         data-filename="${fileName}"
+                         onclick="showFullText(this.dataset.filename)"
+                         style="max-height: 60px; overflow: hidden; font-size: 0.85em; background-color: #f8f9fa;"
+                         title="双击查看完整内容">
+                        <span>${data.data}</span>
+                    </div>
+                `;
+            } else {
+                // 显示空白
+                container.innerHTML = '';
+            }
+        }
+
+        // 全局变量存储当前文件名
+        let currentImageFileName = '';
+        let currentTextFileName = '';
+
+        // 下载图片文件
+        function downloadImage() {
+            if (!currentImageFileName) {
+                showAlert('没有可下载的图片文件', 'warning', 3000);
+                return;
+            }
+
+            const downloadBtn = document.getElementById('downloadImageBtn');
+            const originalText = downloadBtn.innerHTML;
+
+            // 显示下载状态
+            downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>下载中...';
+            downloadBtn.disabled = true;
+
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.href = `/api/oss/download/image/${encodeURIComponent(currentImageFileName)}`;
+            link.download = currentImageFileName;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 恢复按钮状态
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+                showAlert('图片下载已开始', 'success', 2000);
+            }, 500);
+        }
+
+        // 下载文本文件
+        function downloadText() {
+            if (!currentTextFileName) {
+                showAlert('没有可下载的文本文件', 'warning', 3000);
+                return;
+            }
+
+            const downloadBtn = document.getElementById('downloadTextBtn');
+            const originalText = downloadBtn.innerHTML;
+
+            // 显示下载状态
+            downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>下载中...';
+            downloadBtn.disabled = true;
+
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.href = `/api/oss/download/text/${encodeURIComponent(currentTextFileName)}`;
+            link.download = currentTextFileName;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 恢复按钮状态
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+                showAlert('文本文件下载已开始', 'success', 2000);
+            }, 500);
+        }
+
+        // 页面加载完成后异步加载OSS文件 - 优化版本
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即开始懒加载，不需要延迟
+            loadOssFilesAsync();
+        });
+        
+        // 下载当前页面数据
+        function downloadCurrentPage() {
+            if (!tableData.data || tableData.data.length === 0) {
+                showAlert('没有数据可以下载', 'warning', 3000);
+                return;
+            }
+
+            showAlert('正在准备下载当前页面数据...', 'info', 2000);
+
+            // 使用后端API下载
+            const link = document.createElement('a');
+            link.href = `/api/databases/${encodeURIComponent(databaseName)}/tables/${encodeURIComponent(tableName)}/download/csv?fullData=false`;
+            link.download = `${databaseName}_${tableName}_current_page.csv`;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(() => {
+                showAlert('当前页面数据下载已开始', 'success', 2000);
+            }, 500);
+        }
+
+        // 下载完整表数据
+        function downloadFullTable() {
+            // 显示确认对话框
+            if (!confirm('下载完整表数据可能需要较长时间，确定要继续吗？')) {
+                return;
+            }
+
+            showAlert('正在准备下载完整表数据，请稍候...', 'info', 3000);
+
+            // 使用后端API下载完整数据
+            const link = document.createElement('a');
+            link.href = `/api/databases/${encodeURIComponent(databaseName)}/tables/${encodeURIComponent(tableName)}/download/csv?fullData=true`;
+            link.download = `${databaseName}_${tableName}_complete_data.csv`;
+            link.style.display = 'none';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(() => {
+                showAlert('完整表数据下载已开始', 'success', 2000);
+            }, 500);
+        }
+
+        // 旧版本导出功能（保留兼容性）
+        function exportData() {
+            if (!tableData.data || tableData.data.length === 0) {
+                alert('没有数据可以导出');
+                return;
+            }
+
+            // 创建CSV内容
+            let csv = tableData.columns.join(',') + '\n';
+            tableData.data.forEach(row => {
+                const csvRow = row.map(cell => {
+                    if (cell === null) return 'NULL';
+                    if (typeof cell === 'object' && cell !== null) {
+                        // 处理OSS文件信息
+                        if (cell.fileName && cell.exists) {
+                            return cell.fileName;
+                        }
+                        return '';
+                    }
+                    if (typeof cell === 'string' && cell.includes(',')) {
+                        return '"' + cell.replace(/"/g, '""') + '"';
+                    }
+                    return cell;
+                }).join(',');
+                csv += csvRow + '\n';
+            });
+
+            // 下载文件
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${databaseName}_${tableName}_data.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

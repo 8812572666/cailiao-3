@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>材料数据管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-database-gear me-2"></i>
+                材料数据管理系统
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:if="${connectionStatus}">
+                    <i class="bi bi-wifi text-success"></i> 已连接
+                </span>
+                <span class="navbar-text me-3" th:unless="${connectionStatus}">
+                    <i class="bi bi-wifi-off text-danger"></i> 连接失败
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 连接状态提示 -->
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}">错误信息</span>
+        </div>
+
+        <div th:if="${connectionStatus}" class="alert alert-success" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            数据库连接成功！系统已准备就绪。
+        </div>
+
+        <!-- 系统介绍 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            系统概览
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6>欢迎使用材料数据管理系统</h6>
+                                <p class="text-muted mb-2">
+                                    本系统连接到阿里云RDS MySQL数据库，提供数据库浏览、表结构查看、数据预览等功能。
+                                </p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-github-primary">数据库管理</span>
+                                    <span class="badge bg-success">表结构查看</span>
+                                    <span class="badge bg-info">数据预览</span>
+                                    <span class="badge bg-warning">统计分析</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div th:if="${connectionStatus}">
+                                    <h4 class="text-primary" th:text="${databases != null ? #lists.size(databases) : 0}">0</h4>
+                                    <small class="text-muted">可用数据库</small>
+                                </div>
+                                <div th:unless="${connectionStatus}">
+                                    <h4 class="text-danger">--</h4>
+                                    <small class="text-muted">连接失败</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据库列表 -->
+        <div th:if="${connectionStatus and databases != null and !databases.isEmpty()}" class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-server me-2"></i>
+                            可用数据库
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" th:if="${#lists.size(databases) > 0}">
+                            <div class="col-md-6 col-lg-4 mb-3" th:each="database : ${databases}">
+                                <div class="card h-100 database-card">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-server display-4 text-primary mb-3"></i>
+                                        <h6 class="card-title" th:text="${database.name}">数据库名称</h6>
+                                        <p class="card-text text-muted">点击查看详细信息</p>
+                                        <a th:href="@{/database/{name}(name=${database.name})}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>
+                                            查看详情
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${#lists.size(databases) == 0}" class="text-center py-4">
+                            <i class="bi bi-database-x display-1 text-muted"></i>
+                            <h5 class="text-muted mt-3">没有找到可用的数据库</h5>
+                            <p class="text-muted">请检查数据库配置或权限设置</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能说明 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-question-circle me-2"></i>
+                            使用说明
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-1-circle text-primary me-2"></i>选择数据库</h6>
+                                <p class="text-muted small">从上方列表中选择要查看的数据库</p>
+                                
+                                <h6><i class="bi bi-2-circle text-primary me-2"></i>浏览表结构</h6>
+                                <p class="text-muted small">查看数据库中的所有表及其基本信息</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="bi bi-3-circle text-primary me-2"></i>查看数据</h6>
+                                <p class="text-muted small">预览表中的数据内容和列结构</p>
+                                
+                                <h6><i class="bi bi-4-circle text-primary me-2"></i>统计分析</h6>
+                                <p class="text-muted small">获取数据库和表的统计信息</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>材料数据管理系统</h6>
+                    <p class="text-muted small">基于Spring Boot + Thymeleaf构建</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted small">
+                        <i class="bi bi-server me-1"></i>
+                        连接到阿里云RDS MySQL
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

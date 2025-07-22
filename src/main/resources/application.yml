@@ -1,0 +1,120 @@
+# 材料数据管理系统配置文件
+server:
+  port: ${PORT:8080}  # 支持Railway等云平台的动态端口分配
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  # 启用压缩
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+spring:
+  application:
+    name: material-management-system
+  
+  # 数据源配置 - 支持环境变量和默认值
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://rm-cn-w5g4c7g10000azfo.rwlb.rds.aliyuncs.com:3306/information_schema?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&cachePrepStmts=true&useServerPrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048&useLocalSessionState=true&rewriteBatchedStatements=true}
+    username: ${DATABASE_USERNAME:cxf8812572666}
+    password: ${DATABASE_PASSWORD:Cxf88023706}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # 连接池配置 - 高性能优化
+    hikari:
+      minimum-idle: 8
+      maximum-pool-size: 30
+      auto-commit: true
+      idle-timeout: 600000  # 10分钟
+      pool-name: MaterialManagementHikariCP
+      max-lifetime: 1800000  # 30分钟
+      connection-timeout: 15000  # 15秒
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1
+      validation-timeout: 3000
+      # 优化查询性能
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 500  # 增加缓存大小
+        prepStmtCacheSqlLimit: 4096  # 增加SQL缓存限制
+        useServerPrepStmts: true
+        rewriteBatchedStatements: true
+        useLocalSessionState: true
+        useLocalTransactionState: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+        # 网络优化
+        tcpKeepAlive: true
+        tcpNoDelay: true
+        # 字符集优化
+        characterEncoding: utf8
+        useUnicode: true
+      # 连接池优化
+      connection-init-sql: |
+        SET SESSION sql_mode='STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO';
+        SET SESSION innodb_lock_wait_timeout=10;
+
+  # Thymeleaf模板引擎配置
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+  # Web配置
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 86400  # 缓存1天
+        cachecontrol:
+          max-age: 86400
+          cache-public: true
+
+  # 开发工具配置
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+# 日志配置
+logging:
+  level:
+    com.material.management: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 自定义配置
+material:
+  management:
+    database:
+      host: rm-cn-w5g4c7g10000azfo.rwlb.rds.aliyuncs.com
+      username: cxf8812572666
+      password: Cxf88023706
+    page:
+      size: 100
+      max-size: 100000
+
+# OSS配置 - 支持环境变量和默认值
+oss:
+  access-key-id: ${OSS_ACCESS_KEY_ID:LTAI5tAzmjQ8GBZDocozoBSy}
+  access-key-secret: ${OSS_ACCESS_KEY_SECRET:42cL9W2JOvMuYgTVGAES6Hi2593BjP}
+  endpoint: ${OSS_ENDPOINT:oss-cn-wuhan-lr.aliyuncs.com}
+  text-bucket-name: ${OSS_TEXT_BUCKET:testcxf}
+  image-bucket-name: ${OSS_IMAGE_BUCKET:tupian-cxf}
+  thumbnail-width: ${OSS_THUMBNAIL_WIDTH:150}
+  thumbnail-height: ${OSS_THUMBNAIL_HEIGHT:150}
+  thumbnail-format: ${OSS_THUMBNAIL_FORMAT:jpg}
+  text-preview-length: ${OSS_TEXT_PREVIEW_LENGTH:100}
