@@ -208,16 +208,95 @@ public class OssService {
         try {
             OSSObject ossObject = ossClient.getObject(ossConfig.getTextBucketName(), fileName);
             InputStream inputStream = ossObject.getObjectContent();
-            
+
             String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             inputStream.close();
-            
+
             return content;
-            
+
         } catch (Exception e) {
             logger.error("获取完整文本内容失败: {}", e.getMessage());
             return "无法加载文件内容";
         }
+    }
+
+    /**
+     * 获取CSV文件内容并转换为HTML表格格式
+     */
+    public Map<String, Object> getCsvContent(String fileName) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            OSSObject ossObject = ossClient.getObject(ossConfig.getTextBucketName(), fileName);
+            InputStream inputStream = ossObject.getObjectContent();
+
+            String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            inputStream.close();
+
+            // 解析CSV内容
+            String[] lines = content.split("\n");
+            if (lines.length == 0) {
+                result.put("success", false);
+                result.put("message", "CSV文件为空");
+                return result;
+            }
+
+            List<List<String>> csvData = new ArrayList<>();
+            List<String> headers = null;
+
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i].trim();
+                if (line.isEmpty()) continue;
+
+                // 简单的CSV解析（处理逗号分隔）
+                List<String> row = parseCsvLine(line);
+
+                if (i == 0) {
+                    headers = row; // 第一行作为表头
+                } else {
+                    csvData.add(row);
+                }
+            }
+
+            result.put("success", true);
+            result.put("headers", headers);
+            result.put("data", csvData);
+            result.put("rowCount", csvData.size());
+            result.put("fileName", fileName);
+
+            logger.debug("CSV文件解析完成: {}, 行数: {}", fileName, csvData.size());
+            return result;
+
+        } catch (Exception e) {
+            logger.error("获取CSV文件内容失败: {}, 错误: {}", fileName, e.getMessage());
+            result.put("success", false);
+            result.put("message", "无法加载CSV文件: " + e.getMessage());
+            return result;
+        }
+    }
+
+    /**
+     * 解析CSV行（简单实现，处理基本的逗号分隔和引号包围）
+     */
+    private List<String> parseCsvLine(String line) {
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                result.add(current.toString().trim());
+                current = new StringBuilder();
+            } else {
+                current.append(c);
+            }
+        }
+
+        result.add(current.toString().trim());
+        return result;
     }
     
     /**

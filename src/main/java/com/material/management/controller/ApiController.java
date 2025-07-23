@@ -188,14 +188,23 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> getFullText(@PathVariable String fileName) {
         Map<String, Object> response = new HashMap<>();
         try {
-            String textContent = ossService.getTextFullContent(fileName);
-            if (textContent != null) {
-                response.put("success", true);
-                response.put("data", textContent);
-                response.put("fileName", fileName);
+            // 检查是否为CSV文件
+            if (fileName.toLowerCase().endsWith(".csv")) {
+                // 返回CSV解析结果
+                Map<String, Object> csvResult = ossService.getCsvContent(fileName);
+                return ResponseEntity.ok(csvResult);
             } else {
-                response.put("success", false);
-                response.put("message", "文本文件不存在或无法加载");
+                // 处理普通文本文件
+                String textContent = ossService.getTextFullContent(fileName);
+                if (textContent != null) {
+                    response.put("success", true);
+                    response.put("data", textContent);
+                    response.put("fileName", fileName);
+                    response.put("fileType", "text");
+                } else {
+                    response.put("success", false);
+                    response.put("message", "文本文件不存在或无法加载");
+                }
             }
 
             return ResponseEntity.ok(response);
@@ -204,6 +213,23 @@ public class ApiController {
             response.put("message", "获取文本文件失败: " + e.getMessage());
             logger.error("获取文本文件失败 {}: {}", fileName, e.getMessage());
 
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 专门获取CSV文件内容的API端点
+     */
+    @GetMapping("/oss/csv/{fileName}")
+    public ResponseEntity<Map<String, Object>> getCsvContent(@PathVariable String fileName) {
+        try {
+            Map<String, Object> csvResult = ossService.getCsvContent(fileName);
+            return ResponseEntity.ok(csvResult);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "获取CSV文件失败: " + e.getMessage());
+            logger.error("获取CSV文件失败 {}: {}", fileName, e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }

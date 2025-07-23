@@ -227,7 +227,7 @@ public class DatabaseService {
 
             // 批量匹配图片和文本文件
             String[] imageExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".jfif", ".jpe"};
-            String[] textExtensions = {".txt", ".md", ".doc", ".docx", ".pdf"};
+            String[] textExtensions = {".txt", ".md", ".doc", ".docx", ".pdf", ".csv"};
 
             Map<String, String> imageMatches = ossService.batchMatchFiles(
                 ossService.getOssConfig().getImageBucketName(), allIds, imageExtensions);
@@ -441,7 +441,7 @@ public class DatabaseService {
 
         if (id != null && !id.isEmpty()) {
             logger.debug("尝试为ID {} 匹配文本文件", id);
-            String[] textExtensions = {".txt", ".md", ".doc", ".docx", ".pdf"};
+            String[] textExtensions = {".txt", ".md", ".doc", ".docx", ".pdf", ".csv"};
 
             // 直接使用id作为文件名进行匹配
             for (String ext : textExtensions) {
